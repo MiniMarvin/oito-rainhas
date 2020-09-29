@@ -14,7 +14,7 @@ class BinaryEightQueens:
     def binToNum(self, lst):
         num = 0
         for n in lst:
-            num << 1
+            num = num << 1
             if n:
                 num += 1
         return num
@@ -84,15 +84,15 @@ class BinaryEightQueens:
             if found:
                 print('alcançou a solução com ' + str(i) + ' iterações')
                 # print(self.population)
-                values = [(self.fitness(gen), self.buildFenotype(gen)) for gen in self.population if self.fitness(gen) == 0]
+                values = [(self.fitness(gen), self.buildFenotype(gen)) for gen in self.population if self.fitness(gen) == 28]
                 print(values)
                 break
             
             fitElements = [(self.fitness(gen), gen) for gen in self.population]
             fitElements.sort(reverse=True)
 
-            if i%100:
-                print(fitElements[0][0])
+            if i%10 == 0:
+                print(fitElements[0][0], self.buildFenotype(fitElements[0][1]))
 
             limit = math.floor(0.9*len(fitElements))
             newPopulation = []
