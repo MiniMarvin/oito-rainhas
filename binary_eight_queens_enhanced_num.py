@@ -1,50 +1,88 @@
 import random
 import math
+from collections import OrderedDict
 
-class BinaryEightQueens:
-    def __init__(self, populationSize):
+class BinaryEightQueensEnhancedNum:
+    def __init__(self, populationSize, crossOverMethod=1, selectMethod=1):
         '''
         inicializa a classe. 
         @params populationSize o tamanho da população. 
         '''
         self.populationSize = populationSize
-        self.population = [[random.random() > 0.5 for _ in range(8*3)] for _ in range(populationSize)]
-        self.history = [self.population]
+        self.population = []
+        self.crossOverMethod = self.crossOver
+        if crossOverMethod == 2:
+            self.crossOverMethod = self.crossOver2
+        
+        self.selectionMethod = self.selectParents
+        if selectMethod == 2:
+            self.selectionMethod = self.selectionMethod
 
-    def binToNum(self, lst):
-        num = 0
-        for n in lst:
-            num = num << 1
-            if n:
-                num += 1
-        return num
+        while len(self.population) < populationSize:
+          gen = list(range(0,8))
+          random.shuffle(gen)
+          if gen not in self.population:
+            self.population.append(gen)
+        self.history = [self.population]
 
     def buildFenotype(self, gen):
         '''
         Constroi o fenotipo a partir do genoma (posição das rainhas).
         @params gen string o gene a ser calculado.
         '''
-        fenotype = [self.binToNum(gen[i:i+3])
-                    for i in range(0, len(gen), 3)]
 
-        return fenotype
+        return gen
     
     def mutate(self, gen):
-      mutationProbability = 0.4
-      output = gen
-      for i in range(0,len(gen)-1):
+        # swap
+        # todo: verificar se vale trocar o fitness
+        mutationProbability = 0.4
         if random.random() < mutationProbability:
-          #mutate
-          output[i] = bool(random.getrandbits(1))
-      return output
-    
+            a = random.randrange(len(gen))
+            b = random.randrange(len(gen))
+            gen[a], gen[b] = gen[b], gen[a]
+            
+        output = gen
+
+        return output
+
     def crossOver(self, gen1, gen2):
         pos = random.randrange(len(gen1))
         child1 = gen1[:pos] + gen2[pos:]
         child2 = gen2[:pos] + gen1[pos:]
         return child1, child2
+
+    def crossOver2(self, gen1, gen2):
+        pos = random.randrange(len(gen1))
+        child1 = gen1[:pos] + gen2[pos:] + gen2[:pos]
+        child2 = gen2[:pos] + gen1[pos:] + gen1[:pos]
+        
+        # remove repetitions
+        child1 = list(OrderedDict.fromkeys(child1))
+        child2 = list(OrderedDict.fromkeys(child2))
+
+        return child1, child2
     
-    
+    def selectRoulette(self, population):
+        fitnesses = [self.fitness(gen) for gen in population]
+        total = sum(fitnesses)
+        roulette = []
+        for fit in fitnesses:
+            roulette.append(fit/total)
+        
+        prob1 = random.random()
+        prob2 = random.random()
+        prev = 0
+        parents = []
+        for i in range(len(roulette)):
+            if prev >= prob1 and prob1 <= roulette[i]:
+                parents.append(population[i])
+            if prev >= prob2 and prob2 <= roulette[i]:
+                parents.append(population[i])
+            prev = roulette[i]
+
+        return parents
+
     def selectParents(self, population):
         gens = random.sample(population, 5)
         fenotypes = [(self.buildFenotype(gen), gen) for gen in gens]
@@ -97,11 +135,11 @@ class BinaryEightQueens:
             limit = math.floor(0.9*len(fitElements))
             newPopulation = []
             for i in range(limit, -1, -2):
-                parents = self.selectParents(self.population)
+                parents = self.selectionMethod(self.population)
                 # aaa|bbbbbbb
                 # bbb|aaaaaaa
                 # print(parents)
-                gens = self.crossOver(parents[0], parents[1])
+                gens = self.crossOverMethod(parents[0], parents[1])
                 m1, m2 = self.mutate(gens[0]), self.mutate(gens[1])
                 newPopulation.append(m1)
                 newPopulation.append(m2)
