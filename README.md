@@ -43,4 +43,13 @@ Seleção de pais – roleta?
 Seleção de sobreviventes: geracional ou substituição do pior
 Tamanho da população: 10? 30? 50? 70? 120? 200?
 O fitness pode ser melhorado?
-'''
+
+
+## Segunda parte de fato
+A melhorar:
+1. Representação - colocar digitos
+2. Recombinaçao - aquela do caminho ciclo lá
+3. Mutação - permutação
+4. Testar roleta (opcional)
+5. Seleção de sobreviventes (opcional)
+6. fitness - ver depois
