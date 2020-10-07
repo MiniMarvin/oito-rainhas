@@ -3,7 +3,7 @@ import math
 from collections import OrderedDict
 
 class BinaryEightQueensEnhancedNum:
-    def __init__(self, populationSize, crossOverMethod=1, selectMethod=1):
+    def __init__(self, populationSize, crossOverMethod=1, selectMethod=1, mutationMethod=1, entireFit=False):
         '''
         inicializa a classe. 
         @params populationSize o tamanho da população. 
@@ -16,7 +16,11 @@ class BinaryEightQueensEnhancedNum:
         
         self.selectionMethod = self.selectParents
         if selectMethod == 2:
-            self.selectionMethod = self.selectionMethod
+            self.selectionMethod = self.selectRoulette
+
+        self.mutate = self.mutate1
+        if mutationMethod == 2:
+            self.mutate = self.mutate2
 
         while len(self.population) < populationSize:
           gen = list(range(0,8))
@@ -24,6 +28,11 @@ class BinaryEightQueensEnhancedNum:
           if gen not in self.population:
             self.population.append(gen)
         self.history = [self.population]
+
+        if not entireFit:
+            self.checkSolution = self.checkSolution1
+        else:
+            self.checkSolution = self.checkSolution2
 
     def buildFenotype(self, gen):
         '''
@@ -33,7 +42,20 @@ class BinaryEightQueensEnhancedNum:
 
         return gen
     
-    def mutate(self, gen):
+    def mutate1(self, gen):
+        # swap
+        # todo: verificar se vale trocar o fitness
+        mutationProbability = 0.4
+        for i in range(len(gen)):
+            if random.random() < mutationProbability:
+                a = random.randrange(len(gen))
+                gen[i] = a
+            
+        output = gen
+
+        return output
+    
+    def mutate2(self, gen):
         # swap
         # todo: verificar se vale trocar o fitness
         mutationProbability = 0.4
@@ -67,21 +89,26 @@ class BinaryEightQueensEnhancedNum:
         fitnesses = [self.fitness(gen) for gen in population]
         total = sum(fitnesses)
         roulette = []
+        prevProb = 0
         for fit in fitnesses:
-            roulette.append(fit/total)
+            roulette.append(prevProb + fit/total)
+            prevProb += fit/total
         
         prob1 = random.random()
         prob2 = random.random()
         prev = 0
         parents = []
+        # print(prob1, prob2)
+        
         for i in range(len(roulette)):
-            if prev >= prob1 and prob1 <= roulette[i]:
+            if prev <= prob1 and prob1 <= roulette[i]:
                 parents.append(population[i])
-            if prev >= prob2 and prob2 <= roulette[i]:
+            if prev <= prob2 and prob2 <= roulette[i]:
                 parents.append(population[i])
             prev = roulette[i]
 
-        return parents
+        # print(parents)
+        return parents[:2]
 
     def selectParents(self, population):
         gens = random.sample(population, 5)
@@ -91,12 +118,23 @@ class BinaryEightQueensEnhancedNum:
         selectedGens = [gen for fitness, gen in fitness]
         return selectedGens[:2]
     
-    def checkSolution(self, population):
+    def checkSolution1(self, population):
         found = False
         ans = []
         for gen in population:
             if self.fitness(gen) == 28:
                 found = True
+                ans = gen
+                break
+        
+        return found, ans
+    
+    def checkSolution2(self, population):
+        found = True
+        ans = []
+        for gen in population:
+            if self.fitness(gen) != 28:
+                found = False
                 ans = gen
                 break
         
@@ -117,20 +155,36 @@ class BinaryEightQueensEnhancedNum:
         return maxHits - hits
 
     def fit(self):
+        didFinish = False
+        countGenerations = 0
+        populationFitness = []
+        convergentNumber = 0
+
         for i in range(10000):
             found, gen = self.checkSolution(self.population)
             if found:
                 print('alcançou a solução com ' + str(i) + ' iterações')
                 # print(self.population)
                 values = [(self.fitness(gen), self.buildFenotype(gen)) for gen in self.population if self.fitness(gen) == 28]
-                print(values)
+                # print(values)
+
+                ##############################
+                ## measurement of metrics
+                ##############################
+                countGenerations = i
+                didFinish = True
+                populationFitness = [self.fitness(gen) for gen in self.population]
+                convergentNumber = len(values)
+                ##############################
+
                 break
             
             fitElements = [(self.fitness(gen), gen) for gen in self.population]
             fitElements.sort(reverse=True)
 
-            if i%10 == 0:
-                print(fitElements[0][0], self.buildFenotype(fitElements[0][1]))
+            if i%100 == 0:
+                print('passo', i)
+                # print(fitElements[0][0], self.buildFenotype(fitElements[0][1]))
 
             limit = math.floor(0.9*len(fitElements))
             newPopulation = []
@@ -148,6 +202,8 @@ class BinaryEightQueensEnhancedNum:
             population = population[:len(population) - limit] + newPopulation
             self.population = population
         
+        return didFinish, countGenerations, populationFitness, convergentNumber
+
         # print('finalizou com:', [self.buildFenotype(gen) for gen in self.population])
             
             
