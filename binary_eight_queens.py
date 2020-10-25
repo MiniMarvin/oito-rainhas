@@ -1,8 +1,9 @@
 import random
 import math
+import statistics
 
 class BinaryEightQueens:
-    def __init__(self, populationSize):
+    def __init__(self, populationSize, entireFit=False):
         '''
         inicializa a classe. 
         @params populationSize o tamanho da população. 
@@ -10,6 +11,11 @@ class BinaryEightQueens:
         self.populationSize = populationSize
         self.population = [[random.random() > 0.5 for _ in range(8*3)] for _ in range(populationSize)]
         self.history = [self.population]
+
+        if not entireFit:
+            self.checkSolution = self.checkSolution1
+        else:
+            self.checkSolution = self.checkSolution2
 
     def binToNum(self, lst):
         num = 0
@@ -53,12 +59,23 @@ class BinaryEightQueens:
         selectedGens = [gen for fitness, gen in fitness]
         return selectedGens[:2]
     
-    def checkSolution(self, population):
+    def checkSolution1(self, population):
         found = False
         ans = []
         for gen in population:
             if self.fitness(gen) == 28:
                 found = True
+                ans = gen
+                break
+        
+        return found, ans
+    
+    def checkSolution2(self, population):
+        found = True
+        ans = []
+        for gen in population:
+            if self.fitness(gen) != 28:
+                found = False
                 ans = gen
                 break
         
@@ -79,20 +96,36 @@ class BinaryEightQueens:
         return maxHits - hits
 
     def fit(self):
+        didFinish = False
+        countGenerations = 0
+        populationFitness = []
+        convergentNumber = 0
+
         for i in range(10000):
             found, gen = self.checkSolution(self.population)
             if found:
                 print('alcançou a solução com ' + str(i) + ' iterações')
                 # print(self.population)
                 values = [(self.fitness(gen), self.buildFenotype(gen)) for gen in self.population if self.fitness(gen) == 28]
-                print(values)
+                # print(values)
+
+                ##############################
+                ## measurement of metrics
+                ##############################
+                countGenerations = i
+                didFinish = True
+                populationFitness = [self.fitness(gen) for gen in self.population]
+                convergentNumber = len(values)
+                ##############################
+                
                 break
+                
             
             fitElements = [(self.fitness(gen), gen) for gen in self.population]
             fitElements.sort(reverse=True)
 
-            if i%10 == 0:
-                print(fitElements[0][0], self.buildFenotype(fitElements[0][1]))
+            # if i%10 == 0:
+                # print(fitElements[0][0], self.buildFenotype(fitElements[0][1]))
 
             limit = math.floor(0.9*len(fitElements))
             newPopulation = []
@@ -110,6 +143,12 @@ class BinaryEightQueens:
             population = population[:len(population) - limit] + newPopulation
             self.population = population
         
+        return didFinish, countGenerations, populationFitness, convergentNumber
+        # Em quantas execuções o algoritmo convergiu (no/30 execuções);
+        # Em que iteração o algoritmo convergiu (média e desvio padrão);
+        # Número de indivíduos que convergiram por execução;
+        # Fitness médio alcançado nas 30 execuções (média e desvio padrão);
+        # Análise adicional: Quantas iterações são necessárias para toda a população convergir?
         # print('finalizou com:', [self.buildFenotype(gen) for gen in self.population])
             
             

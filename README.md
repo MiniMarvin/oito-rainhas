@@ -53,3 +53,14 @@ A melhorar:
 4. Testar roleta (opcional)
 5. Seleção de sobreviventes (opcional)
 6. fitness - ver depois
+
+## O que precisa no relatório
+Avaliação do Projeto
+
+O objetivo é avaliar se as modificações propostas para a solução do problema das 8 rainhas foram eficientes e eficazes e porque essas alterações levaram a melhora/piora.
+Para cada implementação devem ser feitas 30 execuções e analisar
+* Em quantas execuções o algoritmo convergiu (no/30 execuções);
+* Em que iteração o algoritmo convergiu (média e desvio padrão);
+* Número de indivíduos que convergiram por execução;
+* Fitness médio alcançado nas 30 execuções (média e desvio padrão);
+* Análise adicional: Quantas iterações são necessárias para toda a população convergir?
